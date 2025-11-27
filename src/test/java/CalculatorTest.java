@@ -2,11 +2,16 @@ import org.example.Calculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.*;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class CalculatorTest {  // name of the class must be Test* or *Test to be seen by maven
-                               // class must be public to be seen by maven
+    // class must be public to be seen by maven
     public Calculator calculator = new Calculator();
 
     @BeforeEach
@@ -52,5 +57,51 @@ public class CalculatorTest {  // name of the class must be Test* or *Test to be
         assertThrows(IllegalArgumentException.class, () -> {
             calculator.divide(23, 0);
         }, "IllegalArgumentException was not thrown");
+    }
+
+    @ParameterizedTest(name = "{index} => maxOf({0}, {1}) == {2}")
+    @CsvSource({"2, 1, 2", "1, 2, 2", "1, 1, 1", "-123, 5, 5"})
+    void testMax(int first, int second, int expected) {
+        int result = calculator.maxOf(first, second);
+
+        assertEquals(expected, result);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 2, 4, 1000})
+    void testIsEven(int number) {
+        assertTrue(calculator.isEven(number));
+    }
+
+    @ParameterizedTest
+    @EmptySource
+    void testEmpty(int[] arg) {
+        assertEquals(0, arg.length);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void testNullAndEmpty(int[] arg) {
+        assertTrue(arg == null || arg.length == 0);
+    }
+
+    @ParameterizedTest
+    @MethodSource("stringFactory")
+    void testStrings(String string) {
+        assertFalse(string.isEmpty());
+    }
+
+    @ParameterizedTest
+    @MethodSource("argFactory")
+    void testStringLength(String str, int length) {
+        assertEquals(length, str.length());
+    }
+
+    static List<String> stringFactory() {
+        return List.of("apple", "banana", "lemon", "orange");
+    }
+
+    static List<Arguments> argFactory() {
+        return List.of(arguments("apple", 5), arguments("watermelon", 10));
     }
 }
